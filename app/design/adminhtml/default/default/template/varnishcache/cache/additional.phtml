@@ -1,0 +1,71 @@
+<?php
+/**
+ * PageCache powered by Varnish
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to support@phoenix-media.eu so we can send you a copy immediately.
+ * 
+ * @category   Phoenix
+ * @package    Phoenix_VarnishCache
+ * @copyright  Copyright (c) 2011-2013 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+?>
+
+<?php if ($this->canShowButton()): ?>
+<form action="<?php echo $this->getCleanVarnishCacheUrl() ?>" method="post" id="varnish_clean_form" enctype="multipart/form-data">
+    <?php echo $this->getBlockHtml('formkey')?>
+    <table class="form-list">
+        <tr>
+            <td class="scope-label">
+                <button type="submit" class="scalable"><span><?php echo Mage::helper('varnishcache')->__('Clean Varnish Cache') ?></span></button>
+            </td>
+            <td>
+                <select name="stores" class="required-entry select local-validation" style="width:150px">
+                    <?php foreach ($this->getStoreOptions() as $store): ?>
+                    <option value="<?php echo $store['value'] ?>"><?php echo $this->escapeHtml($store['label'],true) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </td>
+            <td>
+                <select name="content_types" class="required-entry select local-validation" style="width:150px">
+                    <?php foreach ($this->getContentTypeOptions() as $contentType): ?>
+                    <option value="<?php echo $contentType['value'] ?>"><?php echo $this->escapeHtml($contentType['label']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </td>
+            <td class="scope-label">
+                <?php echo Mage::helper('varnishcache')->__('Remove selected cache items in external Varnish cache.')?>
+            </td>
+        </tr>
+    </table>
+</form>
+<form id="quick_purge_form" action="<?php echo $this->getQuickPurgeUrl() ?>" method="post" id="varnish_clean_form" enctype="multipart/form-data">
+    <?php echo $this->getBlockHtml('formkey')?>
+    <table class="form-list">
+        <tr>
+            <td class="scope-label">
+                <button type="submit" class="scalable"><span><?php echo Mage::helper('varnishcache')->__('Quick Purge') ?></span></button>
+            </td>
+            <td>
+                <input type="text" name="quick_purge_url" class="input-text required-entry" style="width:250px" />
+            </td>
+            <td class="scope-label">
+                <?php echo Mage::helper('varnishcache')->__('Ban URL in Varnish Cache.')?>
+            </td>
+        </tr>
+    </table>
+</form>
+<script type="text/javascript">
+//<![CDATA[
+    var quickPurgeForm = new varienForm('quick_purge_form');
+//]]>
+</script>
+<?php endif;?>

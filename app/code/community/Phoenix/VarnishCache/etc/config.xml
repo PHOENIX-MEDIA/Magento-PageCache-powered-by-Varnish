@@ -1,0 +1,313 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+/**
+ * PageCache powered by Varnish
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to support@phoenix-media.eu so we can send you a copy immediately.
+ * 
+ * @category   Phoenix
+ * @package    Phoenix_VarnishCache
+ * @copyright  Copyright (c) 2011-2013 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<config>
+    <modules>
+        <Phoenix_VarnishCache>
+            <version>4.0.5</version>
+        </Phoenix_VarnishCache>
+    </modules>
+    <global>
+        <models>
+            <varnishcache>
+                <class>Phoenix_VarnishCache_Model</class>
+                <resourceModel>varnishcache_resource_mysql4</resourceModel>
+            </varnishcache>
+            <varnishcache_resource_mysql4>
+                <class>Phoenix_VarnishCache_Model_Resource_Mysql4</class>
+            </varnishcache_resource_mysql4>
+        </models>
+        <helpers>
+            <varnishcache>
+                <class>Phoenix_VarnishCache_Helper</class>
+            </varnishcache>
+        </helpers>
+        <blocks>
+            <varnishcache>
+                <class>Phoenix_VarnishCache_Block</class>
+            </varnishcache>
+        </blocks>
+        <resources>
+            <varnishcache_setup>
+                <setup>
+                    <module>Phoenix_VarnishCache</module>
+                    <class>Mage_Core_Model_Resource_Setup</class>
+                </setup>
+            </varnishcache_setup>
+        </resources>
+        <events>
+            <!-- purge product cache after stock update -->
+            <cataloginventory_stock_item_save_after>
+                <observers>
+                    <phoenix_varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>purgeCatalogProductByStock</method>
+                    </phoenix_varnishcache>
+                </observers>
+            </cataloginventory_stock_item_save_after>
+
+            <!-- register shutdown function to handle core url rewrite raw exit -->
+            <controller_front_init_routers>
+                <observers>
+                    <phoenix_varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>registerShutdownFunction</method>
+                    </phoenix_varnishcache>
+                </observers>
+            </controller_front_init_routers>
+        </events>
+    </global>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <Phoenix_VarnishCache before="Mage_Adminhtml">Phoenix_VarnishCache_Adminhtml</Phoenix_VarnishCache>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        <layout>
+            <updates>
+                <varnishcache>
+                    <file>varnishcache.xml</file>
+                </varnishcache>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Phoenix_VarnishCache>
+                    <files>
+                        <default>Phoenix_VarnishCache.csv</default>
+                    </files>
+                </Phoenix_VarnishCache>
+            </modules>
+        </translate>
+        <acl>
+            <resources>
+                <admin>
+                    <children>
+                        <system>
+                            <children>
+                                <config>
+                                    <children>
+                                        <varnishcache>
+                                            <title>PageCache powered by Varnish Settings</title>
+                                        </varnishcache>
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+                    </children>
+                </admin>
+            </resources>
+        </acl>
+        <events>
+            <!-- disable page caching for all admin requests -->
+            <controller_action_predispatch_adminhtml>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>disablePageCaching</method>
+                    </varnishcache>
+                </observers>
+            </controller_action_predispatch_adminhtml>
+
+            <!-- clean varnish page cache together with magento -->
+            <controller_action_postdispatch_adminhtml_cache_flushAll>
+                <observers>
+                    <varnishcache>
+                        <type>singleton</type>
+                        <class>varnishcache/observer</class>
+                        <method>cleanCache</method>
+                    </varnishcache>
+                </observers>
+            </controller_action_postdispatch_adminhtml_cache_flushAll>
+            <controller_action_postdispatch_adminhtml_cache_flushSystem>
+                <observers>
+                    <varnishcache>
+                        <type>singleton</type>
+                        <class>varnishcache/observer</class>
+                        <method>cleanCache</method>
+                    </varnishcache>
+                </observers>
+            </controller_action_postdispatch_adminhtml_cache_flushSystem>
+
+            <!-- clean varnish js/css cache together with magento -->
+            <clean_media_cache_after>
+                <observers>
+                    <enterprise_pagecache>
+                        <class>varnishcache/observer</class>
+                        <method>cleanMediaCache</method>
+                    </enterprise_pagecache>
+                </observers>
+            </clean_media_cache_after>
+
+            <!-- clean varnish catalog images cache together with magento -->
+            <clean_catalog_images_cache_after>
+                <observers>
+                    <enterprise_pagecache>
+                        <class>varnishcache/observer</class>
+                        <method>cleanCatalogImagesCache</method>
+                    </enterprise_pagecache>
+                </observers>
+            </clean_catalog_images_cache_after>
+
+            <!-- purge category cache after save -->
+            <catalog_category_save_after>
+                <observers>
+                    <phoenix_varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>purgeCatalogCategory</method>
+                    </phoenix_varnishcache>
+                </observers>
+            </catalog_category_save_after>
+
+            <!-- purge product cache after save -->
+            <catalog_product_save_after>
+                <observers>
+                    <phoenix_varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>purgeCatalogProduct</method>
+                    </phoenix_varnishcache>
+                </observers>
+            </catalog_product_save_after>
+
+            <!-- purge cms page cache after save -->
+            <cms_page_save_after>
+                <observers>
+                    <phoenix_varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>purgeCmsPage</method>
+                    </phoenix_varnishcache>
+                </observers>
+            </cms_page_save_after>
+
+            <core_config_backend_design_exception_save_commit_after>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>showVclUpdateMessage</method>
+                    </varnishcache>
+                </observers>
+            </core_config_backend_design_exception_save_commit_after>
+        </events>
+    </adminhtml>
+    <frontend>
+        <layout>
+            <updates>
+                <varnishcache>
+                    <file>varnishcache.xml</file>
+                </varnishcache>
+            </updates>
+        </layout>
+        <events>
+            <!-- add cache headers -->
+            <controller_action_postdispatch>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>setCacheControlHeaders</method>
+                    </varnishcache>
+                </observers>
+            </controller_action_postdispatch>
+            <http_response_send_before>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>sanitizeCacheControlHeader</method>
+                    </varnishcache>
+                    <varnishcache_handle_message_cookie>
+                        <class>varnishcache/observer</class>
+                        <method>handleMessageCookie</method>
+                    </varnishcache_handle_message_cookie>
+                </observers>
+            </http_response_send_before>
+            <core_session_abstract_add_message>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>disablePageCaching</method>
+                    </varnishcache>
+                </observers>
+            </core_session_abstract_add_message>
+
+            <!-- stop page caching at visitor interaction -->
+            <checkout_cart_product_add_after>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>disablePageCachingPermanent</method>
+                    </varnishcache>
+                </observers>
+            </checkout_cart_product_add_after>
+            <customer_login>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>disablePageCachingPermanent</method>
+                    </varnishcache>
+                </observers>
+            </customer_login>
+            <catalog_product_compare_add_product>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>disablePageCachingPermanent</method>
+                    </varnishcache>
+                </observers>
+            </catalog_product_compare_add_product>
+            <wishlist_add_product>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>disablePageCachingPermanent</method>
+                    </varnishcache>
+                </observers>
+            </wishlist_add_product>
+        </events>
+    </frontend>
+    <default>
+        <varnishcache>
+            <general>
+                <enabled>0</enabled>
+                <servers>localhost</servers>
+                <port>80</port>
+                <disable_caching>0</disable_caching>
+                <disable_routes><![CDATA[checkout
+customer
+moneybookers
+paypal
+wishlist
+catalog_product_compare]]></disable_routes>
+                <disable_caching_vars><![CDATA[___SID,order]]></disable_caching_vars>
+                <ttl>14400</ttl>
+                <routes_ttl>a:3:{s:1:"1";a:2:{s:6:"regexp";s:3:"cms";s:5:"value";s:5:"86400";}s:1:"2";a:2:{s:6:"regexp";s:20:"catalog_product_view";s:5:"value";s:4:"7200";}s:1:"3";a:2:{s:6:"regexp";s:16:"catalog_category";s:5:"value";s:5:"21600";}}</routes_ttl>
+                <purge_catalog_category>0</purge_catalog_category>
+                <purge_catalog_product>0</purge_catalog_product>
+                <purge_cms_page>0</purge_cms_page>
+                <debug>0</debug>
+            </general>
+        </varnishcache>
+    </default>
+</config>

@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+/**
+ * PageCache powered by Varnish
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to support@phoenix-media.eu so we can send you a copy immediately.
+ * 
+ * @category   Phoenix
+ * @package    Phoenix_VarnishCache
+ * @copyright  Copyright (c) 2011-2013 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<config>
+    <tabs>
+        <phoenix_media>
+            <label>PHOENIX MEDIA</label>
+            <sort_order>250</sort_order>
+        </phoenix_media>
+    </tabs>
+    <sections>
+        <varnishcache translate="label" module="varnishcache">
+            <label>PageCache powered by Varnish</label>
+            <tab>phoenix_media</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>900</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <versioninfo>
+                    <frontend_model>varnishcache/adminhtml_system_config_fieldset_versioninfo</frontend_model>
+                    <sort_order>0</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                </versioninfo>
+                <general translate="label comment" module="varnishcache">
+                    <label>General Settings</label>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <sort_order>10</sort_order>
+                    <fields>
+                        <enabled translate="label comment">
+                            <label>Enable cache module</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                        <servers translate="label comment">
+                            <label>Varnish servers</label>
+                            <comment>Domain or IP list separted by semicolon (e.g. host1;127.0.0.1)</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </servers>
+                        <port translate="label comment">
+                            <label>Server port</label>
+                            <comment>Port of the Varnish servers (e.g. 8080)</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </port>
+                        <disable_caching translate="label comment">
+                            <label>Disable caching</label>
+                            <comment>Set a TTL of "0" for every request</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </disable_caching>
+                        <disable_routes translate="label comment">
+                            <label>Disable caching for routes</label>
+                            <comment>Set a TTL of "0" for certain routes/actions (e.g. checkout, catalog_product_view). Use one per line.</comment>
+                            <frontend_type>textarea</frontend_type>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </disable_routes>
+                        <disable_caching_vars translate="label comment">
+                            <label>Disable caching vars</label>
+                            <comment>Request variables that force setting of NO_CACHE cookie to permanent disable caching for visitor.</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>60</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>  
+                        </disable_caching_vars>
+                        <ttl translate="label comment">
+                            <label>Default cache TTL</label>
+                            <comment>TTL for cached pages in seconds (e.g. "1800" = page cache is valid for 30 minutes).</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>70</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </ttl>
+                        <routes_ttl translate="label comment">
+                            <label>Cache TTL for routes</label>
+                            <comment>TTL for cached pages in seconds for certain routes/actions (e.g. Route:"catalog_product_view", TTL:"7200").</comment>
+                            <frontend_type>textarea</frontend_type>
+                            <frontend_model>varnishcache/adminhtml_system_config_fieldset_routeTTL</frontend_model>
+                            <backend_model>adminhtml/system_config_backend_serialized_array</backend_model>
+                            <sort_order>80</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </routes_ttl>
+                        <purge_catalog_category translate="label comment">
+                            <label>Purge category</label>
+                            <comment>Purge categorie's cache item on save</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>110</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </purge_catalog_category>
+                        <purge_catalog_product translate="label comment">
+                            <label>Purge product</label>
+                            <comment>Purge product's cache item on save</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>120</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </purge_catalog_product>
+                        <purge_cms_page translate="label comment">
+                            <label>Purge CMS page</label>
+                            <comment>Purge CMS page's cache item on save</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>130</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </purge_cms_page>
+                        <debug translate="label comment">
+                            <label>Debug</label>
+                            <comment>Pass X-headers for debugging purpose to the client and log purge requests to /var/log/varnish_cache.log (ensure developer log is enabled).</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>300</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </debug>
+                    </fields>
+                </general>
+            </groups>
+        </varnishcache>
+    </sections>
+</config>
