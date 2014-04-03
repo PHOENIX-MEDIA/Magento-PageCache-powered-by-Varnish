@@ -1,3 +1,31 @@
 {
-    "name": "phoenix/varnish"
+    "name": "phoenix/varnish",
+    "license": "OSL-3.0",
+    "type": "magento-module",
+    "description": "Certified module to integrate Magento and Varnish that makes your eCommerce site fly.",
+    "require": {
+        "magento-hackathon/magento-composer-installer": "*"
+    },
+    "extra":{
+        "map":[
+          ["app/code/community/Phoenix/VarnishCache", "app/code/community/Phoenix/VarnishCache"],
+          ["app/design/adminhtml/default/default/layout/varnishcache.xml", "app/design/adminhtml/default/default/layout/varnishcache.xml"],
+          ["app/design/adminhtml/default/default/template/varnishcache", "app/design/adminhtml/default/default/template/varnishcache"],
+          ["app/design/frontend/base/default/layout/varnishcache.xml", "app/design/frontend/base/default/layout/varnishcache.xml"],
+          ["app/design/frontend/base/default/template/varnishcache", "app/design/frontend/base/default/template/varnishcache"],
+          ["app/etc/modules/Phoenix_VarnishCache.xml", "app/etc/modules/Phoenix_VarnishCache.xml"],
+          ["app/etc/varnishcache.xml", "app/etc/varnishcache.xml"],
+          ["app/locale/de_DE/Phoenix_VarnishCache.csv", "app/locale/de_DE/Phoenix_VarnishCache.csv"],
+          ["app/locale/en_US/Phoenix_VarnishCache.csv", "app/locale/en_US/Phoenix_VarnishCache.csv"],
+          ["app/locale/es_ES/Phoenix_VarnishCache.csv", "app/locale/es_ES/Phoenix_VarnishCache.csv"],
+          ["app/locale/fr_FR/Phoenix_VarnishCache.csv", "app/locale/fr_FR/Phoenix_VarnishCache.csv"],
+          ["app/locale/nb_NO/Phoenix_VarnishCache.csv", "app/locale/nb_NO/Phoenix_VarnishCache.csv"]
+        ]
+      },
+    "authors":[
+        {
+            "name":"phoenix-media",
+            "email":"info@phoenix-media.eu"
+        }
+    ]
 }
