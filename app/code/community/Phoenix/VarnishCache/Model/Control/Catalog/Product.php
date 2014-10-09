@@ -14,7 +14,7 @@
  * 
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2013 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -34,36 +34,43 @@ class Phoenix_VarnishCache_Model_Control_Catalog_Product
     public function purge(Mage_Catalog_Model_Product $product, $purgeParentProducts = false, $purgeCategories = false)
     {
         if ($this->_canPurge()) {
-            $this->_purgeById($product->getId());
+            $idsToPurge = array();
+            $categoryIdsToPurge = array();
+            $idsToPurge[] = $product->getId();
             $this->_getSession()->addSuccess(
             	Mage::helper('varnishcache')->__('Varnish cache for "%s" has been purged.', $product->getName())
             );
+
             if ($purgeParentProducts) {
                 // purge parent products
                 $productRelationCollection = $this->_getProductRelationCollection()
                     ->filterByChildId($product->getId());
                 foreach ($productRelationCollection as $productRelation) {
-                    $this->_purgeById($productRelation->getParentId());
+                    $idsToPurge[] = $productRelation->getParentId();
                 }
                 // purge categories of parent products
                 if ($purgeCategories) {
                     $categoryProductCollection = $this->_getCategoryProductRelationCollection()
                         ->filterAllByProductIds($productRelationCollection->getAllIds());
-                    $catalogCacheControl = $this->_getCategoryCacheControl();
+
                     foreach ($categoryProductCollection as $categoryProduct) {
-                        $catalogCacheControl->purgeById($categoryProduct->getCategoryId());
+                        $categoryIdsToPurge[] = $categoryProduct->getCategoryId();
                     }
                 }
             }
+
+            $this->_purgeByIds($idsToPurge);
+
             if ($purgeCategories) {
-                $catalogCacheControl = $this->_getCategoryCacheControl();
                 foreach ($product->getCategoryCollection() as $category) {
-                    $catalogCacheControl->purge($category);
+                    $categoryIdsToPurge[] = $category->getId();
                 }
                 $this->_getSession()->addSuccess(
                 	Mage::helper('varnishcache')->__('Varnish cache for the product\'s categories has been purged.')
                 );
             }
+
+            $this->_purgeCategoriesByIds($categoryIdsToPurge);
         }
         return $this;
     }
@@ -92,11 +99,72 @@ class Phoenix_VarnishCache_Model_Control_Catalog_Product
     {
         $collection = $this->_getUrlRewriteCollection()
             ->filterAllByProductId($id);
+        $urlPaths = array();
         foreach ($collection as $urlRewriteRule) {
-            $urlRegexp = '/' . $urlRewriteRule->getRequestPath();
-            $this->_getCacheControl()
-                ->clean($this->_getStoreDomainList(), $urlRegexp);
+            $urlPaths[] = $urlRewriteRule->getRequestPath();
         }
+        $urlRegexp = '/(' . implode('|', $urlPaths) . ')';
+        $this->_getCacheControl()
+            ->clean($this->_getStoreDomainList(), $urlRegexp);
+        return $this;
+    }
+
+    /**
+     * Purge product by ids
+     *
+     * @param $ids
+     *
+     * @return Phoenix_VarnishCache_Model_Control_Catalog_Product
+     */
+    protected function _purgeCategoriesByIds($ids)
+    {
+        $idPaths = array();
+        foreach ($ids as $id) {
+            $idPaths[] = "category/$id";
+        }
+
+        $collection = $this->_getUrlRewriteCollection();
+        $collection->getSelect()
+            ->where('id_path IN ("' . implode('","', $idPaths) . '")');
+
+        $urlPaths = array();
+        foreach ($collection as $urlRewriteRule) {
+            $urlPaths[] = $urlRewriteRule->getRequestPath();
+        }
+
+        $this->_getCacheControl()->cleanUrlPaths($this->_getStoreDomainList(), $urlPaths);
+    }
+
+    /**
+     * Purge product by ids
+     *
+     * @param $ids
+     *
+     * @return Phoenix_VarnishCache_Model_Control_Catalog_Product
+     */
+    protected function _purgeByIds($ids)
+    {
+        $idPaths = array();
+        foreach ($ids as $id) {
+            $idPaths[] = "product/$id";
+        }
+
+        $collection = $this->_getUrlRewriteCollection();
+        $collection->getSelect()
+            ->where('id_path IN ("' . implode('","', $idPaths) . '")');
+
+        foreach ($idPaths as $idPath) {
+            $collection->getSelect()
+                ->orWhere('id_path LIKE "' . $idPath . '/%"');
+        }
+
+        $urlPaths = array();
+        foreach ($collection as $urlRewriteRule) {
+            $urlPaths[] = $urlRewriteRule->getRequestPath();
+        }
+
+        $this->_getCacheControl()->cleanUrlPaths($this->_getStoreDomainList(), $urlPaths);
+
         return $this;
     }
 

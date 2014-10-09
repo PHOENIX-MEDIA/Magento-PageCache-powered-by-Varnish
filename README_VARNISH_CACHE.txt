@@ -20,6 +20,9 @@ Table of contents
    4.2 Varnish Cache (VCL)
    4.3 PageCache Crawler
    4.4 ESI
+       4.4.1 Form Key Handling
+       4.4.2 Enterprise Edition Features
+   4.5 GeoIP handling
 5. Cache cleaning, PURGE requests
 6. VCL Design Exceptions
 7. Troubleshooting
@@ -113,12 +116,17 @@ configuration directory (/etc/varnish/). If you subscribed to the Enterprise Edi
 of the module you find and improved VCL file with ESI support (see section 4.4) here:
 app/code/local/Phoenix/VarnishCacheEnterprise/etc/esi_3.0.vcl.
 
+In case you use EE >= 1.13 or CE >= 1.8 and you want to make use of frontend
+form keys you have to enable ESI within varnish.
+Make sure you copy the file vars.vcl to the Varnish configuration directory
+as well. It should be located in the same directory as the default.vcl.
+
 We also recommend you check Varnish's startup parameters. Depending on your OS the
 location of your startup settings might differ. For RHEL/CentOS e.g. you find it under
 /etc/sysconfig/varnish.
 To make ESI run smoothly add this startup parameters:
 
--p esi_syntax=0x1
+-p esi_syntax=0x03
 to make varnish not yell at you cause of "no valid XML" 
 
 -p shm_reclen=4096
@@ -135,6 +143,9 @@ Proceed with the configuration.
 
 4. Configuration
 ================
+
+This section handles the differnet configuration option for the module
+as well as settings that have to be done on the server side.
 
 4.1 PageCache module
 ====================
@@ -156,7 +167,6 @@ allows cache cleaning on the Magento Cache Management page. This option
 should be set to "Yes" globally even if you like to deactivate the
 module for certain websites or store views. Otherwise the cleaning
 options on the Cache Magement page won’t be available.
-
 
 Varnish servers
 ---------------
@@ -289,6 +299,16 @@ Magento and Varnish right away you can of course adjust it to your needs
 if necessary. Please see VCL documentation at
 http://www.varnish-cache.org/docs/3.0/reference/vcl.html.
 
+In the "etc" subdirectory you can find different vcl files:
+- default_3.0.vcl
+- vars.vcl
+or with the Enterprise Edition:
+- esi_3.0.vcl
+- esi_geo.vcl (if you want to use the geoip feature)
+- vars.vcl
+
+You have to copy all the needed vcl files to your varnish config directory.
+
 When putting Varnish in front of your web server (backend) you will have
 to change the web server’s port which is normally port 80. We recommend
 to change its’ listen port to 8080 which is already configured in the
@@ -342,8 +362,8 @@ Defines cron run schedule. This field should contain a valid cron expression
 string like "0 0 * * *" for daily run or "0 * * * *" for hourly run. For more
 information read http://en.wikipedia.org/wiki/Cron
 
-4.4 ESI (Enterprise Edition only)
-=================================
+4.4 ESI
+=======
 
 Edge Side Includes (ESI) is implemented in Varnish as a subset of the W3C
 definition (http://www.w3.org/TR/esi-lang) and supports esi:include and 
@@ -359,6 +379,15 @@ Please note that the Page Cache shipped with Magento Enterprise Edition is not
 compatible with ESI and therefore has to be turned of (System -> Cache Management)
 as it is based on the same application logic (replacing original blocks with
 placeholders and compile the actual page content on the fly).
+
+4.4.1 Form Key Handling
+-----------------------
+As with version CE 1.8 and EE 1.13 Magento introduced form keys. In case you want
+to use ESI with a version that uses formkeys you have to make that the vars.vcl file
+is in the correct location.
+
+4.4.2 Enterprise Edition Features
+---------------------------------
 
 The enterprise version comes preconfigured with ESI handling for these blocks:
 - top links
@@ -388,7 +417,7 @@ section.
 
 ESI Strict Rendering
 --------------------
-When set to ""No"" block logic gets simplified to get better hit rates. However the content might slightly
+When set to "No" block logic gets simplified to get better hit rates. However the content might slightly
 differ from native Magento block. This affects especially to the "recently viewed products" and "recently compared
 products" block which natively filters the list of viewed or compared products.
 
@@ -411,6 +440,65 @@ ESI Passthrough
 ---------------
 Pass all ESI requests through Varnish to the backend without caching them. This is a shortcut to set the TTL of ESI
 blocks temporarily to 0 seconds.
+
+4.5 GeoIP handling (Enterprise Edition only)
+=================================
+
+GeoIP handling will get the country of a web client based on it's IP address.
+This feature can be used to either automatically redirect customers to the store matching their
+country or to show them a dialog to select the desired store themselves.
+
+prerequisites
+------------
+You have to install the MaxMind GeoIP database alongside your varnish server. You can get it here
+http://www.maxmind.com/de/geolocation_landing or install it with your usual Linux package system.
+As the vcl configuration that comes with this module is based on the MaxMind c-api, only this library is supported.
+
+On most Linux package managements the libraries are called: GeoIP and GeoIP-devel.
+
+To make use of then GeoIP handling ESI has to be enabled.
+To enable GeoIP handling go to System -> Configuration -> "PageCache powered by Varnish Enterprise"
+and open the "GeoIP Settings" tab and choose "Yes" with "Enable GeoIP".
+Make sure to be on store configuration scope.
+
+varnish start parameters
+------------------------
+To make Varnish use the GeoIP library add the following parameter to the options when starting varnishd
+-p 'cc_command=exec cc -fpic -shared -Wl,-x -o %o %s -lGeoIP'
+
+general behaviour
+-----------------
+The module will set a cookie with the name "pagegache-geoip-processed" after a redirect or when a dialog is displayed.
+If this cookie is set on the customer side this module will take no action at all as we presume the customer either
+saw (and maybe interacted with) the popup or was automatically redirected to the matching store.
+
+Show a dialog to select target store
+------------------------------------
+When set to "yes" your customers will be presented with a dialog. When set to "no" your customers will be redirected.
+The action performed depends on two variables:
+- the current store
+- the country of your customer
+To configure the dialog or the redirect url you have to switch to store scope and add mappings for the countries you
+want to redirect/inform.
+All country mappings use ISO 3166-1-alpha-2 codes.
+
+Mapping for static CMS blocks
+-----------------------------
+For every country you want to show a dialog you have to enter a country code an select a static cms block to display.
+This module comes with predefined cms blocks to be a base for your custom development.
+The modal window itself can be customized by editing the template file under
+/frontend/base/default/template/varnishcacheenterprise/page/geoipdialog.phtml
+
+Mapping for redirects
+---------------------
+For every country you want to redirect to a specific store you have to enter a country code an select a target store.
+
+Prevent redirect or static blocks to be shown
+---------------------------------------------
+You probably don't want to redirect your customers to another store if the country of your visitor matches the current
+store.
+To prevent redirects you have to add a mapping using the country code of that store and leave the other field empty.
+This way, if your customer is in the "right" store (based on the country) no geoip based action will be triggered.
 
 
 5. Cache cleaning, PURGE requests
@@ -581,6 +669,21 @@ varnishlog and make sure the Vary header only looks like this:
 
 8. Changelog
 ============
+4.2.0
+- added support for frontend form keys, introduced in EE 1.13 and CE 1.8
+
+4.1.1
+- fixed issue with esi tags being rendered with POST requests
+
+4.1.0
+- added GeoIP handling
+
+4.0.7
+- added ESI block for cookie notices
+
+4.0.6
+- fixed minor issue with vcl
+
 4.0.5
 - fixed issue with caching of store switching requests
 

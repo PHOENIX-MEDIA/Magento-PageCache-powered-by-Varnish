@@ -14,7 +14,7 @@
  * 
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2013 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -106,10 +106,29 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
         // renew no-cache cookie
         $this->setNoCacheCookie(true);
 
-        // disable page caching for POSTs and no_cache parameters
-        if ($request->isPost() || $request->getParam('no_cache') || $request->getParam('___store') ||
-            !in_array(Mage::app()->getResponse()->getHttpResponseCode(), array(200, 301, 404))) {
+        /**
+         * disable page caching
+         */
+
+        // disable page caching for POSTs
+        if ($request->isPost()) {
             return $this->setNoCacheHeader();
+        }
+
+        // disable page caching for due to HTTP status codes
+        if (!in_array(Mage::app()->getResponse()->getHttpResponseCode(), array(200, 301, 404))) {
+            return $this->setNoCacheHeader();
+        }
+
+        // disable page caching for certain GET parameters
+        $noCacheGetParams = array(
+            'no_cache',     // explicit
+            '___store'      // language switch
+        );
+        foreach($noCacheGetParams as $param) {
+            if($request->getParam($param)) {
+                return $this->setNoCacheHeader();
+            }
         }
 
         // disable page caching because of configuration
@@ -181,6 +200,7 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
      */
     public function setNoCacheCookie($renewOnly = false)
     {
+
         if ($this->getCookie()->get(self::NO_CACHE_COOKIE)) {
             $this->getCookie()->renew(self::NO_CACHE_COOKIE);
         } elseif (!$renewOnly) {
@@ -270,37 +290,49 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
      */
     public function getStoreDomainList($storeId = 0, $seperator = '|')
     {
-        $storeIds = array($storeId);
+        return implode($seperator, $this->_getStoreDomainsArray($storeId));
+    }
 
-        // if $store is empty or 0 get all store ids
-        if (empty($storeId)) {
-            $storeIds = Mage::getResourceModel('core/store_collection')->getAllIds();
-        }
+    /**
+     * @param int $storeId
+     *
+     * @return array
+     */
+    protected function _getStoreDomainsArray($storeId = 0)
+    {
+        if (!isset($this->_storeDomainArray[$storeId])) {
+            $this->_storeDomainArray[$storeId] = array();
 
-        $domains = array();
-        $urlTypes = array(
-            Mage_Core_Model_Store::URL_TYPE_LINK,
-            Mage_Core_Model_Store::URL_TYPE_DIRECT_LINK,
-            Mage_Core_Model_Store::URL_TYPE_WEB,
-            Mage_Core_Model_Store::URL_TYPE_SKIN,
-            Mage_Core_Model_Store::URL_TYPE_JS,
-            Mage_Core_Model_Store::URL_TYPE_MEDIA
-        );
-        foreach ($storeIds as $storeId) {
-            $store = Mage::getModel('core/store')->load($storeId);
-
-            foreach ($urlTypes as $urlType) {
-                // get non-secure store domain
-                $domains[] = Zend_Uri::factory($store->getBaseUrl($urlType, false))->getHost();
-                // get secure store domain
-                $domains[] = Zend_Uri::factory($store->getBaseUrl($urlType, true))->getHost();
+            $storeIds = array($storeId);
+            // if $store is empty or 0 get all store ids
+            if (empty($storeId)) {
+                $storeIds = Mage::getResourceModel('core/store_collection')->getAllIds();
             }
+
+            $urlTypes = array(
+                Mage_Core_Model_Store::URL_TYPE_LINK,
+                Mage_Core_Model_Store::URL_TYPE_DIRECT_LINK,
+                Mage_Core_Model_Store::URL_TYPE_WEB,
+                Mage_Core_Model_Store::URL_TYPE_SKIN,
+                Mage_Core_Model_Store::URL_TYPE_JS,
+                Mage_Core_Model_Store::URL_TYPE_MEDIA
+            );
+            foreach ($storeIds as $_storeId) {
+                $store = Mage::getModel('core/store')->load($_storeId);
+
+                foreach ($urlTypes as $urlType) {
+                    // get non-secure store domain
+                    $this->_storeDomainArray[$storeId][] = Zend_Uri::factory($store->getBaseUrl($urlType, false))->getHost();
+                    // get secure store domain
+                    $this->_storeDomainArray[$storeId][] = Zend_Uri::factory($store->getBaseUrl($urlType, true))->getHost();
+                }
+            }
+
+            // get only unique values
+            $this->_storeDomainArray[$storeId] = array_unique($this->_storeDomainArray[$storeId]);
         }
 
-        // get only unique values
-        $domains = array_unique($domains);
-
-        return implode($seperator, $domains);
+        return $this->_storeDomainArray[$storeId];
     }
 
     /**

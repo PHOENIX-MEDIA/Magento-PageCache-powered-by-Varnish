@@ -14,7 +14,7 @@
  * 
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2013 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -305,7 +305,7 @@ class Phoenix_VarnishCache_Model_Observer
         }
         return $this;
     }
-    
+
     /**
      * Shows notice to update Varnish VCL file
      *
@@ -317,11 +317,11 @@ class Phoenix_VarnishCache_Model_Observer
         try {
             Mage::getSingleton('core/session')->addNotice(
                 Mage::helper('varnishcache')->__(
-                	'Update Varnish VCL with design exceptions by using the following snippet:'
+                    'Update Varnish VCL with design exceptions by using the following snippet:'
                 )
             );
 
-            $designExceptionSubSnippet = Mage::getSingleton('varnishcacheenterprise/vcl')
+            $designExceptionSubSnippet = Mage::getSingleton('varnishcache/vcl')
                 ->generateDesignExceptionSub();
 
             $designExceptionSubSnippet = str_replace(' ', '&nbsp;', $designExceptionSubSnippet);
@@ -373,6 +373,38 @@ class Phoenix_VarnishCache_Model_Observer
                     $this->_getCacheHelper()->deleteMessageNoCacheCookie();
                 }
             }
+        }
+    }
+
+    /**
+     * replace all occurrences of the form key
+     *
+     * @param Varien_Event_Observer $observer
+     */
+    public function replaceFormKeys(Varien_Event_Observer $observer)
+    {
+        $esiHelper = Mage::helper('varnishcache/esi');
+        if (!$esiHelper->hasFormKey()) {
+            return false;
+        }
+
+        $response = $observer->getResponse();
+        $html     = $response->getBody();
+        $html     = $esiHelper->replaceFormKey($html);
+
+        $response->setBody($html);
+    }
+
+    /**
+     * Register form key in session from cookie value
+     *
+     * @param Varien_Event_Observer $observer
+     */
+    public function registerCookieFormKey(Varien_Event_Observer $observer)
+    {
+        if ($formKey = Mage::helper('varnishcache/esi')->getCookieFormKey()) {
+            $session = Mage::getSingleton('core/session');
+            $session->setData('_form_key', $formKey);
         }
     }
 }

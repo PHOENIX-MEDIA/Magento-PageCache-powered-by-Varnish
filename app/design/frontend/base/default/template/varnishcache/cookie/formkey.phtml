@@ -17,11 +17,24 @@
  * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-
-class Phoenix_VarnishCache_Model_Catalog_Category_Product extends Mage_Core_Model_Abstract
-{
-    protected function _construct()
-    {
-        $this->_init('varnishcache/catalog_category_product');
+?>
+<?php
+/**
+ * Set formkey cookie template
+ *
+ * @see Phoenix_VarnishCache_Block_Cookie_Formkey
+ */
+?>
+<?php
+    $_cookieName   = $this->getCookieName();
+    $_formKeyValue = $this->getFormKeyValue();
+?>
+<script type="text/javascript">
+    if (document.cookie.length && (document.cookie.indexOf('<?php echo $_cookieName; ?>=') == -1)) {
+        Mage.Cookies.set(
+            '<?php echo $_cookieName; ?>',
+            '<?php echo $_formKeyValue; ?>',
+            new Date(new Date().getTime() + <?php echo $this->getCookieLifetime(); ?>)
+        );
     }
-}
+</script>

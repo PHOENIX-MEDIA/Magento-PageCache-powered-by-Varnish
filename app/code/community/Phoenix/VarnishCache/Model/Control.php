@@ -14,7 +14,7 @@
  * 
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2013 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -38,6 +38,7 @@ class Phoenix_VarnishCache_Model_Control
     const VARNISH_HEADER_HOST = 'X-Purge-Host';
     const VARNISH_HEADER_CONTENT_TYPE = 'X-Purge-Content-Type';
 
+    const MAX_URL_PATHS_PER_REQUEST = 50;
 
     /**
      * Get content types as option array
@@ -83,6 +84,14 @@ class Phoenix_VarnishCache_Model_Control
         return true;
     }
 
+    public function cleanUrlPaths($domains, $urlPaths)
+    {
+        $urlPaths = array_chunk($urlPaths, self::MAX_URL_PATHS_PER_REQUEST);
+        foreach ($urlPaths as $urlPathsChunk) {
+            $urlRegexp = '/(' . implode('|', $urlPathsChunk) . ')';
+            $this->clean($domains, $urlRegexp);
+        }
+    }
 
     /**
      * Process all servers

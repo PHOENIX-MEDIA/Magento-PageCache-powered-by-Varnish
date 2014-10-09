@@ -15,14 +15,14 @@
  * 
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2013 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 -->
 <config>
     <modules>
         <Phoenix_VarnishCache>
-            <version>4.0.5</version>
+            <version>4.2.0</version>
         </Phoenix_VarnishCache>
     </modules>
     <global>
@@ -203,6 +203,7 @@
                 </observers>
             </cms_page_save_after>
 
+            <!-- show vcl update message -->
             <core_config_backend_design_exception_save_commit_after>
                 <observers>
                     <varnishcache>
@@ -285,6 +286,22 @@
                     </varnishcache>
                 </observers>
             </wishlist_add_product>
+            <http_response_send_before>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>replaceFormKeys</method>
+                    </varnishcache>
+                </observers>
+            </http_response_send_before>
+            <controller_action_predispatch>
+                <observers>
+                    <varnishcache>
+                        <class>varnishcache/observer</class>
+                        <method>registerCookieFormKey</method>
+                    </varnishcache>
+                </observers>
+            </controller_action_predispatch>
         </events>
     </frontend>
     <default>
