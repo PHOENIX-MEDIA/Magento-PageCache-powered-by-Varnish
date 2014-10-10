@@ -382,9 +382,10 @@ placeholders and compile the actual page content on the fly).
 
 4.4.1 Form Key Handling
 -----------------------
-As with version CE 1.8 and EE 1.13 Magento introduced form keys. In case you want
-to use ESI with a version that uses formkeys you have to make that the vars.vcl file
-is in the correct location.
+As with version CE 1.8 and EE 1.13 Magento introduced form keys in the frontend.
+In case you want to use version that uses form keys you have to make sure ESI is
+turned on in your Varnish configuration (see chapter 3) and that the vars.vcl
+file is in the correct location (typically /etc/varnish/).
 
 4.4.2 Enterprise Edition Features
 ---------------------------------

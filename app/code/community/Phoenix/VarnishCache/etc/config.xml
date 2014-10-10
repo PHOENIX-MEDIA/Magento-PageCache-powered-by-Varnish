@@ -22,7 +22,7 @@
 <config>
     <modules>
         <Phoenix_VarnishCache>
-            <version>4.2.0</version>
+            <version>4.2.1</version>
         </Phoenix_VarnishCache>
     </modules>
     <global>

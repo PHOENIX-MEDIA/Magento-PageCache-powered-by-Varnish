@@ -384,7 +384,8 @@ class Phoenix_VarnishCache_Model_Observer
     public function replaceFormKeys(Varien_Event_Observer $observer)
     {
         $esiHelper = Mage::helper('varnishcache/esi');
-        if (!$esiHelper->hasFormKey()) {
+        /* @var $esiHelper Phoenix_VarnishCache_Helper_Esi */
+        if (!$esiHelper->hasFormKey() || Mage::app()->getRequest()->isPost()) {
             return false;
         }
 
