@@ -37,7 +37,7 @@
 "The JavaScript/CSS cache has been cleaned on the Varnish servers.","JavaScript/CSS cache har blitt tomt på Varnish servere."
 "The Varnish cache has been cleaned.","Varnish cache har blitt tomt."
 "The catalog image cache has been cleaned on the Varnish servers.","Katalog bilder cache har blitt tomt på Varnish servere."
-"Varnish cache for ""%s"" has been purged.","Varnish cache for "% s" har blitt tømt."
+"Varnish cache for ""%s"" has been purged.","Varnish cache for ""% s"" har blitt tømt."
 "Varnish cache for the product's categories has been purged.","Varnish cache av produktets kategorier har blitt tømt."
 "Varnish servers","Varnish-servere"
 "Quick Purge","Quick Purge"
