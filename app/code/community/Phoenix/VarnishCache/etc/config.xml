@@ -22,7 +22,7 @@
 <config>
     <modules>
         <Phoenix_VarnishCache>
-            <version>4.2.1</version>
+            <version>4.2.2</version>
         </Phoenix_VarnishCache>
     </modules>
     <global>
@@ -234,10 +234,14 @@
             </controller_action_postdispatch>
             <http_response_send_before>
                 <observers>
-                    <varnishcache>
+                    <varnishcache_sanitize_header>
                         <class>varnishcache/observer</class>
                         <method>sanitizeCacheControlHeader</method>
-                    </varnishcache>
+                    </varnishcache_sanitize_header>
+                    <varnishcache_form_keys>
+                        <class>varnishcache/observer</class>
+                        <method>replaceFormKeys</method>
+                    </varnishcache_form_keys>
                     <varnishcache_handle_message_cookie>
                         <class>varnishcache/observer</class>
                         <method>handleMessageCookie</method>
@@ -286,14 +290,6 @@
                     </varnishcache>
                 </observers>
             </wishlist_add_product>
-            <http_response_send_before>
-                <observers>
-                    <varnishcache>
-                        <class>varnishcache/observer</class>
-                        <method>replaceFormKeys</method>
-                    </varnishcache>
-                </observers>
-            </http_response_send_before>
             <controller_action_predispatch>
                 <observers>
                     <varnishcache>
