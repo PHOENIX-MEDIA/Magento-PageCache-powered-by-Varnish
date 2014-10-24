@@ -20,8 +20,9 @@
 
 class Phoenix_VarnishCache_Helper_Data extends Mage_Core_Helper_Abstract
 {
-    const XML_PATH_VARNISH_CACHE_ENABLED  = 'varnishcache/general/enabled';
-    const XML_PATH_VARNISH_CACHE_DEBUG    = 'varnishcache/general/debug';
+    const XML_PATH_VARNISH_CACHE_ENABLED   = 'varnishcache/general/enabled';
+    const XML_PATH_VARNISH_CACHE_DEBUG     = 'varnishcache/general/debug';
+    const XML_PATH_VARNISH_CACHE_ESI_HTTPS = 'varnishcache/general/disable_esi_https';
 
     /**
      * Check whether Varnish cache is enabled
@@ -44,6 +45,16 @@ class Phoenix_VarnishCache_Helper_Data extends Mage_Core_Helper_Abstract
             return true;
         }
         return false;
+    }
+
+    /**
+     * Check whether ESI form key generation is enabled over HTTPS
+     *
+     * @return bool
+     */
+    public function isHttpsEsiDisabled()
+    {
+        return Mage::getStoreConfigFlag(self::XML_PATH_VARNISH_CACHE_ESI_HTTPS);
     }
 
     /**

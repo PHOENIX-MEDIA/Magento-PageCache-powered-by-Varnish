@@ -12,6 +12,8 @@
 "Disable caching","Disable caching"
 "Disable caching for routes","Disable caching for routes"
 "Disable caching vars","Disable caching vars"
+"Disable ESI HTTPS","Disable ESI HTTPS"
+"Disable ESI form key generation on secure connections.","Disable ESI form key generation on secure connections."
 "Domain or IP list separted by semicolon (e.g. host1;127.0.0.1)","Domain or IP list separted by semicolon (e.g. host1;127.0.0.1)"
 "Enable cache module","Enable cache module"
 "HTML","HTML"

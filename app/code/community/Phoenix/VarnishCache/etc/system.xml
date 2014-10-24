@@ -165,6 +165,17 @@
                             <show_in_store>1</show_in_store>
                             <depends><enabled>1</enabled></depends>
                         </purge_cms_page>
+                        <disable_esi_https translate="label comment">
+                            <label>Disable ESI HTTPS</label>
+                            <comment>Disable ESI form key generation on secure connections.</comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>140</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enabled>1</enabled></depends>
+                        </disable_esi_https>
                         <debug translate="label comment">
                             <label>Debug</label>
                             <comment>Pass X-headers for debugging purpose to the client and log purge requests to /var/log/varnish_cache.log (ensure developer log is enabled).</comment>
