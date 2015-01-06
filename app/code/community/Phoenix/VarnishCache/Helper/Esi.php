@@ -26,6 +26,16 @@ class Phoenix_VarnishCache_Helper_Esi extends Mage_Core_Helper_Abstract
     const ESI_INCLUDE_CLOSE = '" />';
 
     /**
+     * Check if ESI is disabled over HTTPS
+     *
+     * @return bool
+     */
+    protected function _isHttpsEsiDisabled()
+    {
+        return Mage::helper('varnishcache')->isHttpsEsiDisabled();
+    }
+
+    /**
      * return if used magento version uses form keys
      *
      * @return bool
@@ -44,6 +54,10 @@ class Phoenix_VarnishCache_Helper_Esi extends Mage_Core_Helper_Abstract
      */
     public function getFormKeyEsiTag()
     {
+        if($this->_isHttpsEsiDisabled() && Mage::app()->getStore()->isCurrentlySecure()) {
+            return Mage::getSingleton('core/session')->getFormKey();
+        }
+
         $url = Mage::getUrl(
             self::ESI_FORMKEY_URL,
             array(

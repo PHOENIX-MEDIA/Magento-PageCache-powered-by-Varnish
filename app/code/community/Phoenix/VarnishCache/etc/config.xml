@@ -22,7 +22,7 @@
 <config>
     <modules>
         <Phoenix_VarnishCache>
-            <version>4.2.2</version>
+            <version>4.2.3</version>
         </Phoenix_VarnishCache>
     </modules>
     <global>
@@ -319,6 +319,7 @@ catalog_product_compare]]></disable_routes>
                 <purge_catalog_category>0</purge_catalog_category>
                 <purge_catalog_product>0</purge_catalog_product>
                 <purge_cms_page>0</purge_cms_page>
+                <disable_esi_https>0</disable_esi_https>
                 <debug>0</debug>
             </general>
         </varnishcache>

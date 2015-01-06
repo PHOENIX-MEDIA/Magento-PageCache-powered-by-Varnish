@@ -670,6 +670,16 @@ varnishlog and make sure the Vary header only looks like this:
 
 8. Changelog
 ============
+4.2.3
+- added option to disable ESI over HTTPS (#16)
+
+4.2.2
+- fixed issue #6 by setting DoEsi header when form_keys are replaced to enable ESI processing in VCL
+- fixed error in translation (#12)
+
+4.2.1
+- fixed issue post requests and form keys
+
 4.2.0
 - added support for frontend form keys, introduced in EE 1.13 and CE 1.8
 
