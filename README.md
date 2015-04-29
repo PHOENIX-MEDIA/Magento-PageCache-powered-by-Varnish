@@ -38,7 +38,7 @@ Table of contents
 ===============
 
 Thank you for using "PageCache powered by Varnish" (PageCache) module.
-This package contains everything you need to connect Varnish Cache with your 
+This package contains everything you need to connect Varnish Cache with your
 Magento Commerce shop and to get the most out of Varnish’s powerful
 caching capabilities for a blazing fast eCommerce site.
 
@@ -110,7 +110,7 @@ clear Magento’s cache again.
 As Varnish is already installed on your server you should just make a
 backup of your default.vcl file which is shipped with Varnish. It should
 be located at /etc/varnish/default.vcl. Copy the VCL file bundled with
-the PageCache module for your version of Varnish (located at 
+the PageCache module for your version of Varnish (located at
 app/code/local/Phoenix/VarnishCache/etc/default*.vcl) to your Varnish
 configuration directory (/etc/varnish/). If you subscribed to the Enterprise Edition
 of the module you find and improved VCL file with ESI support (see section 4.4) here:
@@ -127,7 +127,7 @@ location of your startup settings might differ. For RHEL/CentOS e.g. you find it
 To make ESI run smoothly add this startup parameters:
 
 -p esi_syntax=0x03
-to make varnish not yell at you cause of "no valid XML" 
+to make varnish not yell at you cause of "no valid XML"
 
 -p shm_reclen=4096
 to maximize the length for GET requests - 4K should be fair enough.
@@ -205,7 +205,7 @@ Although Varnish passes all POST requests (which most often are used to
 submit forms with custom information etc.) you can also define the
 controllers and actions that should have the "no-cache" flag in their
 HTTP response header.
-Note: The function relies on 
+Note: The function relies on
 Mage_Core_Controller_Varien_Action::getFullActionName().
 
 Disable caching vars
@@ -232,12 +232,12 @@ level which allows you to have different TTLs for your frontend pages.
 Note that this field only allows numeric values in seconds. It doesn’t
 support the same notation that can be used in the VCL. "2h" (2
 hours) have to be entered as "7200" seconds.
-For static contents Varnish uses the default TTL value defined in the 
+For static contents Varnish uses the default TTL value defined in the
 vcl_fetch section of the VCL (Default: set beresp.ttl = 4h).
 
 Cache TTL for routes
 ---------------------
-This options allows you to adjust Varnish cache TTL on a per magento 
+This options allows you to adjust Varnish cache TTL on a per magento
 controllers/actions basis. To add a new TTL value for route
 1) click "Add route" button
 2) input route (e.g. "cms", "catalog_product_view");
@@ -246,7 +246,7 @@ controllers/actions basis. To add a new TTL value for route
 
 Export VCL File
 ---------------
-When clicked this button, PageCache module reads VCL loaded to RAM, 
+When clicked this button, PageCache module reads VCL loaded to RAM,
 updates it according to Magento Design Exceptions configurations and
 serves VCL file for download. Varnish servers should be restarted using
 this file to changes take place.
@@ -254,16 +254,16 @@ this file to changes take place.
 Purge category
 --------------
 This option binds automatic purge of category (Varnish) cache with its
-update event. If you always want up-to-date category information on 
-front-end set the option value to "Yes" and category cache will be 
+update event. If you always want up-to-date category information on
+front-end set the option value to "Yes" and category cache will be
 invalidated each time a category update occurs.
 
 Purge product
 --------------
-This option binds purge of product (Varnish) cache with product and 
-product's stock update. If set to "Yes" product pages cache is 
+This option binds purge of product (Varnish) cache with product and
+product's stock update. If set to "Yes" product pages cache is
 invalidated each time product update or product's stock update occurs.
-Additionally, if "Purge Category" option is set to "Yes" this triggers 
+Additionally, if "Purge Category" option is set to "Yes" this triggers
 product's categories cache purge on product/product stock update.
 This option is useful to keep product pages and categories up-to-date
 when product becomes out of stock (i.e. when the last item purchased by
@@ -366,7 +366,7 @@ information read http://en.wikipedia.org/wiki/Cron
 =======
 
 Edge Side Includes (ESI) is implemented in Varnish as a subset of the W3C
-definition (http://www.w3.org/TR/esi-lang) and supports esi:include and 
+definition (http://www.w3.org/TR/esi-lang) and supports esi:include and
 esi:remove only.
 With ESI enabled your Magento installation will become even faster than running
 only Varnish alone. ESI is used to cache recurring snippets (aka blocks in Magento)
@@ -412,7 +412,7 @@ value in the next section.
 ESI TTL for blocks
 ------------------
 You can override the default TTL by setting block specific values.
-The block name must match the tag names defined in the config.xml in 
+The block name must match the tag names defined in the config.xml in
 app/code/local/Phoenix/VarnishCacheEnterprise/etc in the <varnishenterprise_esi_tags>
 section.
 
@@ -539,7 +539,7 @@ will be purged too as the product image and JavaScript/CSS paths will
 change when Magento generated them again so the cached HTML objects
 might contain wrong paths if not refreshed.
 You can also enable automatic purging of CMS pages, categories and products
-when they are saved (see configuration). 
+when they are saved (see configuration).
 If you don’t want these observers to take automatic action comment them
 out in the config.xml of the PageCache module.
 
@@ -560,7 +560,7 @@ Your browser should start file download your server VCL updated with design
 exceptions subroutine. Restart your varnish servers using downloaded VCL.
 
 You can run "man varnishd" in command line for description of varnishd options.
-Also see documentation explaining how to start varnish for versions 3.0 respectively: 
+Also see documentation explaining how to start varnish for versions 3.0 respectively:
 https://www.varnish-cache.org/docs/3.0/tutorial/starting_varnish.html
 
 
@@ -621,7 +621,7 @@ explicitly allow caching to be cached by Varnish, add this line to the
 mod_expires section of your .htaccess file:
 
     ExpiresByType text/html A0
-    
+
 This will set the expiry time of the object equal to the delivery time which
 will not allow Varnish to cache the object.
 
@@ -666,7 +666,7 @@ browser the Varnish has no cache hits check your backend response with
 varnishlog and make sure the Vary header only looks like this:
 
     Vary: Accept-Encoding
-    
+
 
 8. Changelog
 ============
