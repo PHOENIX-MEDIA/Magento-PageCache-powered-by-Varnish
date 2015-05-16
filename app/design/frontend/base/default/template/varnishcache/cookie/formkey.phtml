@@ -33,7 +33,7 @@
     if (document.cookie.length && (document.cookie.indexOf('<?php echo $_cookieName; ?>=') == -1)) {
         Mage.Cookies.set(
             '<?php echo $_cookieName; ?>',
-            '<?php echo $_formKeyValue; ?>',
+            "<?php echo $_formKeyValue; ?>",
             new Date(new Date().getTime() + <?php echo $this->getCookieLifetime(); ?>)
         );
     }
