@@ -307,12 +307,14 @@
                 <servers>localhost</servers>
                 <port>80</port>
                 <disable_caching>0</disable_caching>
+                <enable_cache_https>0</enable_cache_https>
                 <disable_routes><![CDATA[checkout
 customer
 moneybookers
 paypal
 wishlist
-catalog_product_compare]]></disable_routes>
+catalog_product_compare
+sales]]></disable_routes>
                 <disable_caching_vars><![CDATA[___SID,order]]></disable_caching_vars>
                 <ttl>14400</ttl>
                 <routes_ttl>a:3:{s:1:"1";a:2:{s:6:"regexp";s:3:"cms";s:5:"value";s:5:"86400";}s:1:"2";a:2:{s:6:"regexp";s:20:"catalog_product_view";s:5:"value";s:4:"7200";}s:1:"3";a:2:{s:6:"regexp";s:16:"catalog_category";s:5:"value";s:5:"21600";}}</routes_ttl>
