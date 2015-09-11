@@ -22,8 +22,8 @@ class Phoenix_VarnishCache_Helper_Esi extends Mage_Core_Helper_Abstract
 {
     const ESI_FORMKEY_URL   = 'varnishcache/getformkey/';
     const FORMKEY_COOKIE    = 'PAGECACHE_FORMKEY';
-    const ESI_INCLUDE_OPEN  = '<esi:include src="';
-    const ESI_INCLUDE_CLOSE = '" />';
+    const ESI_INCLUDE_OPEN  = "<esi:include src='";
+    const ESI_INCLUDE_CLOSE = "' />";
 
     /**
      * Check if ESI is disabled over HTTPS
