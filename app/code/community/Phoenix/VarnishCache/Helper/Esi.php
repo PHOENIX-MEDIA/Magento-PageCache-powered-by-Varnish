@@ -36,6 +36,16 @@ class Phoenix_VarnishCache_Helper_Esi extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * Check if ESI is disabled over HTTPS
+     *
+     * @return bool
+     */
+    protected function _isHttpsEsiDisabled()
+    {
+        return Mage::helper('varnishcache')->isHttpsEsiDisabled();
+    }
+
+    /**
      * return if used magento version uses form keys
      *
      * @return bool
