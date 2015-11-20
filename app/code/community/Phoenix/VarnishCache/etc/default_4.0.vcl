@@ -328,7 +328,8 @@ C{
         result[maxLength] = '\0';
 
         // set req.X-Country-Code header
-        VRT_SetHdr(ctx, HDR_REQ, "\024X-Pagecache-Formkey:", result, vrt_magic_string_end);
+        const struct gethdr_s hdr = { HDR_REQ, "\024X-Pagecache-Formkey:" };
+        VRT_SetHdr(ctx, &hdr, result, vrt_magic_string_end);
 
         return 0;
     }
