@@ -1,15 +1,17 @@
-# This is a basic VCL configuration file for PageCache powered by Varnish for Magento module.
+vcl 4.0;
+
+# This is a basic VCL configuration file for PageCache powered by Varnish Enterprise for Magento module.
 
 # default backend definition.  Set this to point to your content server.
 backend default {
   .host = "127.0.0.1";
-  .port = "8080";
+  .port = "80";
 }
 
 # admin backend with longer timeout values. Set this to the same IP & port as your default server.
 backend admin {
   .host = "127.0.0.1";
-  .port = "8080";
+  .port = "80";
   .first_byte_timeout = 18000s;
   .between_bytes_timeout = 18000s;
 }
@@ -31,37 +33,40 @@ sub vcl_recv {
         }
     }
 
-    if (req.request != "GET" &&
-        req.request != "HEAD" &&
-        req.request != "PUT" &&
-        req.request != "POST" &&
-        req.request != "TRACE" &&
-        req.request != "OPTIONS" &&
-        req.request != "DELETE" &&
-        req.request != "PURGE") {
+    if (req.method != "GET" &&
+        req.method != "HEAD" &&
+        req.method != "PUT" &&
+        req.method != "POST" &&
+        req.method != "TRACE" &&
+        req.method != "OPTIONS" &&
+        req.method != "DELETE" &&
+        req.method != "PURGE") {
         /* Non-RFC2616 or CONNECT which is weird. */
         return (pipe);
     }
 
+   # Normalize the query arguments
+   set req.url = std.querysort(req.url);
+
     # purge request
-    if (req.request == "PURGE") {
+    if (req.method == "PURGE") {
         if (!client.ip ~ purge) {
-            error 405 "Not allowed.";
+            return (synth(405, "Not allowed."));
         }
         ban("obj.http.X-Purge-Host ~ " + req.http.X-Purge-Host + " && obj.http.X-Purge-URL ~ " + req.http.X-Purge-Regex + " && obj.http.Content-Type ~ " + req.http.X-Purge-Content-Type);
-        error 200 "Purged.";
+        return (synth(200, "Purged."));
     }
 
     # switch to admin backend configuration
     if (req.http.cookie ~ "adminhtml=") {
-        set req.backend = admin;
+        set req.backend_hint = admin;
     }
 
     # tell backend that esi is supported
     set req.http.X-ESI-Capability = "on";
 
     # we only deal with GET and HEAD by default
-    if (req.request != "GET" && req.request != "HEAD") {
+    if (req.method != "GET" && req.method != "HEAD") {
         return (pass);
     }
 
@@ -86,12 +91,17 @@ sub vcl_recv {
             # create formkey once
             set req.http.X-Pagecache-Formkey-Raw = req.http.Cookie + client.ip + req.xid;
             C{
-                char *result = generate_formkey(VRT_GetHdr(sp, HDR_REQ, "\030X-Pagecache-Formkey-Raw:"));
-                VRT_SetHdr(sp, HDR_REQ, "\024X-Pagecache-Formkey:", result, vrt_magic_string_end);
+		        const char *formKeyRaw;
+		        const struct gethdr_s hdr = { HDR_REQ, "\030X-Pagecache-Formkey-Raw:" };
+		        formKeyRaw = VRT_GetHdr(ctx, &hdr);
+		        char *result = generate_formkey((char *)formKeyRaw);
+
+		        static const struct gethdr_s formkey = { HDR_REQ, "\024X-Pagecache-Formkey:"};
+		        VRT_SetHdr(ctx, &formkey, result, vrt_magic_string_end );
             }C
         }
         unset req.http.X-Pagecache-Formkey-Raw;
-        error 760 req.http.X-Pagecache-Formkey;
+        return (synth(760, req.http.X-Pagecache-Formkey));
     }
 
     # do not cache any page from index files
@@ -109,14 +119,14 @@ sub vcl_recv {
     if (req.http.Accept-Encoding) {
         if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg|swf|flv)$") {
             # No point in compressing these
-            remove req.http.Accept-Encoding;
+            unset req.http.Accept-Encoding;
         } elsif (req.http.Accept-Encoding ~ "gzip") {
             set req.http.Accept-Encoding = "gzip";
         } elsif (req.http.Accept-Encoding ~ "deflate" && req.http.user-agent !~ "MSIE") {
             set req.http.Accept-Encoding = "deflate";
         } else {
             # unknown algorithm
-            remove req.http.Accept-Encoding;
+            unset req.http.Accept-Encoding;
         }
     }
 
@@ -125,7 +135,7 @@ sub vcl_recv {
     set req.url = regsuball(req.url, "\?gclid=[^&]+&", "?"); # strips when QS = "?gclid=AAA&foo=bar"
     set req.url = regsuball(req.url, "&gclid=[^&]+",   "");  # strips when QS = "?foo=bar&gclid=AAA" or QS = "?foo=bar&gclid=AAA&bar=baz"
 
-    return (lookup);
+    return (hash);
 }
 
 # sub vcl_pipe {
@@ -139,7 +149,7 @@ sub vcl_recv {
 # }
 
 # sub vcl_pass {
-#     return (pass);
+#     return (fetch);
 # }
 
 sub vcl_hash {
@@ -157,13 +167,13 @@ sub vcl_hash {
             "\2"
         );
         hash_data(req.http.pageCacheEnv);
-        remove req.http.pageCacheEnv;
+        unset req.http.pageCacheEnv;
     }
 
     if (!(req.url ~ "^/(media|js|skin)/.*\.(png|jpg|jpeg|gif|css|js|swf|ico)$")) {
         call design_exception;
     }
-    return (hash);
+    return (lookup);
 }
 
 # sub vcl_hit {
@@ -174,14 +184,13 @@ sub vcl_hash {
 #     return (fetch);
 # }
 
-sub vcl_fetch {
+sub vcl_backend_response {
     if (beresp.status >= 500) {
        # let SOAP errors pass - better debugging
-      if ((beresp.http.Content-Type ~ "text/xml") || (req.url ~ "^/errors/")) {
+      if ((beresp.http.Content-Type ~ "text/xml") || (bereq.url ~ "^/errors/")) {
            return (deliver);
        }
-       set beresp.saintmode = 10s;
-       return (restart);
+       return (retry);
     }
     set beresp.grace = 5m;
 
@@ -189,14 +198,16 @@ sub vcl_fetch {
     set beresp.do_esi = true;
 
     # add ban-lurker tags to object
-    set beresp.http.X-Purge-URL  = req.url;
-    set beresp.http.X-Purge-Host = req.http.host;
+    set beresp.http.X-Purge-URL  = bereq.url;
+    set beresp.http.X-Purge-Host = bereq.http.host;
 
     if (beresp.status == 200 || beresp.status == 301 || beresp.status == 404) {
         if (beresp.http.Content-Type ~ "text/html" || beresp.http.Content-Type ~ "text/xml") {
             if ((beresp.http.Set-Cookie ~ "NO_CACHE=") || (beresp.ttl < 1s)) {
                 set beresp.ttl = 0s;
-                return (hit_for_pass);
+                # set beresp.ttl = 120s;
+                set beresp.uncacheable = true;
+                return (deliver);
             }
 
             # marker for vcl_deliver to reset Age:
@@ -211,7 +222,9 @@ sub vcl_fetch {
         return (deliver);
     }
 
-    return (hit_for_pass);
+    # set beresp.ttl = 120s;
+    set beresp.uncacheable = true;
+    return (deliver);
 }
 
 sub vcl_deliver {
@@ -226,11 +239,11 @@ sub vcl_deliver {
         set resp.http.X-Cache-Expires  = resp.http.Expires;
     } else {
         # remove Varnish/proxy header
-        remove resp.http.X-Varnish;
-        remove resp.http.Via;
-        remove resp.http.Age;
-        remove resp.http.X-Purge-URL;
-        remove resp.http.X-Purge-Host;
+        unset resp.http.X-Varnish;
+        unset resp.http.Via;
+        unset resp.http.Age;
+        unset resp.http.X-Purge-URL;
+        unset resp.http.X-Purge-Host;
     }
 
     if (resp.http.magicmarker) {
@@ -244,46 +257,43 @@ sub vcl_deliver {
     }
 }
 
-sub vcl_error {
-    # workaround for possible security issue
-    if (req.url ~ "^\s") {
-        set obj.status = 400;
-        set obj.response = "Malformed request";
-        synthetic "";
-        return(deliver);
-    }
-
-    # formkey request
-    if (obj.status == 760) {
-        set obj.status = 200;
-	    synthetic obj.response;
-        return(deliver);
-    }
-
-    # error 200
-    if (obj.status == 200) {
-        return (deliver);
-    }
-
-     set obj.http.Content-Type = "text/html; charset=utf-8";
-     set obj.http.Retry-After = "5";
-     synthetic {"
+sub vcl_backend_error {
+     set beresp.http.Content-Type = "text/html; charset=utf-8";
+     set beresp.http.Retry-After = "5";
+     synthetic({"
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html>
+<p.status + " " + resp.reason +tml>
     <head>
-        <title>"} + obj.status + " " + obj.response + {"</title>
+        <title>"} + beresp.status + " " + beresp.reason + {"</title>
     </head>
     <body>
-        <h1>Error "} + obj.status + " " + obj.response + {"</h1>
-        <p>"} + obj.response + {"</p>
+        <h1>Error "} + beresp.status + " " + beresp.reason + {"</h1>
+        <p>"} + beresp.reason + {"</p>
         <h3>Guru Meditation:</h3>
-        <p>XID: "} + req.xid + {"</p>
+        <p>XID: "} + bereq.xid + {"</p>
         <hr>
         <p>Varnish cache server</p>
     </body>
 </html>
-"};
+"});
+     return (deliver);
+}
+
+sub vcl_synth {
+     set resp.http.Content-Type = "text/html; charset=utf-8";
+     set resp.http.Retry-After = "5";
+
+    # formkey request
+    if (resp.status == 760) {
+        set resp.http.tmpReason = resp.reason;
+        set resp.status = 200;
+        synthetic(resp.http.tmpReason);
+	    unset resp.http.tmpReason;
+        unset resp.http.Accept-Encoding;
+        return(deliver);
+    }
+
      return (deliver);
 }
 
@@ -294,6 +304,7 @@ sub vcl_error {
 
 sub design_exception {
 }
+
 
 C{
     #include <string.h>
@@ -320,8 +331,8 @@ C{
             pout[1] = hex[ *pin     & 0xF];
         }
         pout[-1] = 0;
-
-        // return md5
+        
+	    // return md5
         return md5string;
     }
 }C

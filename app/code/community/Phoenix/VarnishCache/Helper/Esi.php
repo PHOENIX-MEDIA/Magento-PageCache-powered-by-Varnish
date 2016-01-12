@@ -1,9 +1,9 @@
 <?php
 /**
  * PageCache powered by Varnish
- * 
+ *
  * NOTICE OF LICENSE
- * 
+ *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
@@ -11,10 +11,10 @@
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to support@phoenix-media.eu so we can send you a copy immediately.
- * 
+ *
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @copyright  Copyright (c) 2011-2015 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -24,16 +24,6 @@ class Phoenix_VarnishCache_Helper_Esi extends Mage_Core_Helper_Abstract
     const FORMKEY_COOKIE    = 'PAGECACHE_FORMKEY';
     const ESI_INCLUDE_OPEN  = "<esi:include src='";
     const ESI_INCLUDE_CLOSE = "' />";
-
-    /**
-     * Check if ESI is disabled over HTTPS
-     *
-     * @return bool
-     */
-    protected function _isHttpsEsiDisabled()
-    {
-        return Mage::helper('varnishcache')->isHttpsEsiDisabled();
-    }
 
     /**
      * return if used magento version uses form keys
@@ -54,7 +44,7 @@ class Phoenix_VarnishCache_Helper_Esi extends Mage_Core_Helper_Abstract
      */
     public function getFormKeyEsiTag()
     {
-        if($this->_isHttpsEsiDisabled() && Mage::app()->getStore()->isCurrentlySecure()) {
+        if(false === $this->_isEsiCapable()) {
             return Mage::getSingleton('core/session')->getFormKey();
         }
 
@@ -100,5 +90,15 @@ class Phoenix_VarnishCache_Helper_Esi extends Mage_Core_Helper_Abstract
     public function getCookieFormKey()
     {
         return Mage::getSingleton('core/cookie')->get(self::FORMKEY_COOKIE);
+    }
+
+    /**
+     * Returns if ESI can be processed by varnish
+     *
+     * @return bool
+     */
+    protected function _isEsiCapable()
+    {
+        return Mage::helper('varnishcache')->isEsiCapable();
     }
 }

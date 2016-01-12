@@ -12,6 +12,8 @@
 "Disable caching","Caching deaktivieren"
 "Disable caching for routes","Caching für Routen deaktivieren"
 "Disable caching vars","Cache-Deaktivierungs-Variablen"
+"Disable ESI HTTPS","Esi für HTTPS deaktivieren"
+"Disable ESI form key generation on secure connections.","ESI form key Erstellung bei HTTPS Verbindungen deaktivieren."
 "Domain or IP list separted by semicolon (e.g. host1;127.0.0.1)","Domänen- oder IP-Liste getrennt durch Strichpunkt (z.B. server1;127.0.0.1)"
 "Enable cache module","Aktiviere Caching Modul"
 "HTML","HTML"

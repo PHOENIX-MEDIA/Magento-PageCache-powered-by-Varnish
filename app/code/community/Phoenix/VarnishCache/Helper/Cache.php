@@ -1,9 +1,9 @@
 <?php
 /**
  * PageCache powered by Varnish
- * 
+ *
  * NOTICE OF LICENSE
- * 
+ *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
@@ -11,10 +11,10 @@
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to support@phoenix-media.eu so we can send you a copy immediately.
- * 
+ *
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @copyright  Copyright (c) 2011-2015 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -41,13 +41,6 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
      * @var string
      */
     const MESSAGE_NO_CACHE_COOKIE = 'MESSAGE_NO_CACHE';
-
-    /**
-     * Cookie name for environment cookie
-     *
-     * @var string
-     */
-    const ENVIRONMENT_COOKIE = 'PAGECACHE_ENV';
 
     /**
      * Header for debug flag
@@ -250,7 +243,12 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
      */
     public static function setTtlHeader($ttl)
     {
-        $maxAge = 's-maxage=' . (($ttl < 0) ? 0 : $ttl);
+        // ttl of 0 means "PASS" but pass is done with "private"
+        if ($ttl <= 0) {
+            $maxAge = 'private';
+        } else {
+            $maxAge = 's-maxage=' . $ttl;
+        }
         $cacheControlValue = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, '.$maxAge;
 
         // retrieve existing "Cache-Control" header
@@ -263,10 +261,12 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
         foreach ($headers as $key => $header) {
             if ('Cache-Control' == $header['name'] && !empty($header['value'])) {
                 // replace existing "max-age" value
-                if (strpos($header['value'], 'age=') !== false) {
+                if ((strpos($maxAge, 's-maxage') !== false) && (strpos($header['value'], 'age=') !== false)) {
                     $cacheControlValue = preg_replace('/(s-)?max[-]?age=[0-9]+/', $maxAge, $header['value']);
+                } elseif (($maxAge === 'private') && (strpos($header['value'], 'private') !== false)) {
+                    // do nothing
                 } else {
-                    $cacheControlValue .= $header['value'].', '.$maxAge;
+                    $cacheControlValue .= $header['value'] . ', ' . $maxAge;
                 }
             }
         }
@@ -286,11 +286,17 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
      *
      * @param int    $storeId
      * @param string $seperator
+     * @param array  $domains
+     *
      * @return string
      */
-    public function getStoreDomainList($storeId = 0, $seperator = '|')
+    public function getStoreDomainList($storeId = 0, $seperator = '|', $domains = array())
     {
-        return implode($seperator, $this->_getStoreDomainsArray($storeId));
+        if (empty($domains)) {
+            $domains = $this->_getStoreDomainsArray($storeId);
+        }
+
+        return implode($seperator, $domains);
     }
 
     /**

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <system>
+                        <children>
+                            <phoenix_varnish_cache translate="title">
+                                <title>Clean Varnish Cache</title>
+                            </phoenix_varnish_cache>
+                        </children>
+                    </system>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

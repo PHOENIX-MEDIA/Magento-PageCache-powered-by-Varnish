@@ -1,9 +1,9 @@
 <?php
 /**
  * PageCache powered by Varnish
- * 
+ *
  * NOTICE OF LICENSE
- * 
+ *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
@@ -11,10 +11,10 @@
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to support@phoenix-media.eu so we can send you a copy immediately.
- * 
+ *
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2014 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @copyright  Copyright (c) 2011-2015 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -62,7 +62,7 @@ class Phoenix_VarnishCache_Model_Control
      * @param   string  domain names for cleaning
      * @param   string  RegEx pattern for url matching
      * @param   string  content type to clean
-     * @return  void
+     * @return  bool
      */
     public function clean($domains, $urlRegEx = '.*', $contentType = '.*')
     {
@@ -82,6 +82,21 @@ class Phoenix_VarnishCache_Model_Control
         }
 
         return true;
+    }
+
+    /**
+     * Wrapper for clean() that uses Phoenix_VarnishCache_Model_Hash_Parameters object instead of string parameters
+     *
+     * @param Phoenix_VarnishCache_Model_Hash_Parameters $parameters
+     *
+     * @return bool
+     */
+    public function cleanByParameters(Phoenix_VarnishCache_Model_Hash_Parameters $parameters)
+    {
+        $domains = Mage::helper('varnishcache/cache')->getStoreDomainList(0, '|', $parameters->getDomains());
+        $regexp = $parameters->getRegexp();
+        $type = $parameters->getType();
+        return $this->clean($domains, $regexp, $type);
     }
 
     public function cleanUrlPaths($domains, $urlPaths)
