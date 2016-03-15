@@ -176,6 +176,17 @@
                             <show_in_store>1</show_in_store>
                             <depends><enabled>1</enabled></depends>
                         </disable_esi_https>
+                        <export translate="label comment" module="varnishcache">
+                            <label>Export VCL File</label>
+                            <frontend_type>button</frontend_type>
+                            <frontend_model>varnishcache/adminhtml_system_config_form_field_exportvcl</frontend_model>
+                            <sort_order>150</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>Download VCL template reflecting current config settings.</comment>
+                            <depends><enabled>1</enabled></depends>
+                        </export>
                         <debug translate="label comment">
                             <label>Debug</label>
                             <comment>Pass X-headers for debugging purpose to the client and log purge requests to /var/log/varnish_cache.log (ensure developer log is enabled).</comment>

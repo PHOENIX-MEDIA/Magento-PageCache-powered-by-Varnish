@@ -21,11 +21,19 @@
 class Phoenix_VarnishCache_Adminhtml_VarnishCacheController
     extends Mage_Adminhtml_Controller_Action
 {
+    /**
+     * get current session
+     *
+     * @return mixed
+     */
     protected function _getSession()
     {
         return Mage::getSingleton('adminhtml/session');
     }
 
+    /**
+     * clean cache
+     */
     public function cleanAction()
     {
         try {
@@ -55,6 +63,9 @@ class Phoenix_VarnishCache_Adminhtml_VarnishCacheController
         $this->_redirect('*/cache/index');
     }
 
+    /**
+     * quick purge cache
+     */
     public function quickPurgeAction()
     {
         try {
@@ -108,6 +119,30 @@ class Phoenix_VarnishCache_Adminhtml_VarnishCacheController
     }
 
     /**
+     * export vcl
+     *
+     * @return mixed
+     */
+    public function exportVclAction()
+    {
+        // check if vcl is valid
+        $vcl = $this->getRequest()->getParam('vcl', false);
+        if (! $this->_isVclValid($vcl)) {
+            $this->_redirectReferer();
+        }
+
+        try {
+            return $this->_prepareDownloadResponse(
+                basename($vcl),
+                Mage::getSingleton('varnishcache/vcl')->export($vcl)
+            );
+        } catch (Exception $e) {
+            $this->_getSession()->addError($e->getMessage());
+            $this->_redirectReferer();
+        }
+    }
+
+    /**
      * Check if cache management is allowed
      *
      * @return bool
@@ -115,5 +150,25 @@ class Phoenix_VarnishCache_Adminhtml_VarnishCacheController
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('system/phoenix_varnish_cache');
+    }
+
+    /**
+     * check if given vcl file is valid
+     *
+     * @param $vclFile
+     * @return bool
+     */
+    protected function _isVclValid($vclFile)
+    {
+        $validVcls = Mage::getSingleton('varnishcache/admin_vcl')->toOptionArray();
+
+        // check if vcl is valid
+        foreach($validVcls as $validVcl) {
+            if ($validVcl['value'] == $vclFile) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
