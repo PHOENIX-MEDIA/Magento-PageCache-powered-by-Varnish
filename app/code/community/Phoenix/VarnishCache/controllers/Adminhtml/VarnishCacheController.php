@@ -21,6 +21,11 @@
 class Phoenix_VarnishCache_Adminhtml_VarnishCacheController
     extends Mage_Adminhtml_Controller_Action
 {
+    protected function _isAllowed()
+    {
+        return Mage::getSingleton('admin/session')->isAllowed('system/config/varnishcache');
+    }
+    
     /**
      * get current session
      *
