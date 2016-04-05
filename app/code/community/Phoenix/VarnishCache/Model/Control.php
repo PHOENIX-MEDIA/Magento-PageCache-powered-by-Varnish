@@ -4,18 +4,18 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
+ * This source file is subject to the PageCache powered by Varnish License
+ * that is bundled with this package in the file LICENSE_VARNISH_CACHE.txt.
  * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
+ * http://www.phoenix-media.eu/license/license_varnish_cache.txt
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to support@phoenix-media.eu so we can send you a copy immediately.
  *
  * @category   Phoenix
  * @package    Phoenix_VarnishCache
- * @copyright  Copyright (c) 2011-2015 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  Copyright (c) 2011 PHOENIX MEDIA GmbH (http://www.phoenix-media.eu)
+ * @license    http://www.phoenix-media.eu/license/license_varnish_cache.txt
  */
 
 /**
@@ -121,18 +121,26 @@ class Phoenix_VarnishCache_Model_Control
         // process all servers
         foreach ($servers as $server) {
             // compile url string with scheme, domain/server and port
-            $uri = 'http://'.$server;
+            if (strpos($server, 'http') !== 0) {
+                $uri = 'http://'.$server;
+            } else {
+                $uri = $server;
+            }
+
             if ($port = trim(Mage::getStoreConfig(self::XML_PATH_VARNISH_PORT))) {
                 $uri .= ':'.$port;
             }
+
             $uri .= '/';
 
             try {
                 // create HTTP client
                 $client = new Zend_Http_Client();
+                $client->setAdapter(new Varien_Http_Adapter_Curl());
                 $client->setUri($uri)
                     ->setHeaders($headers)
-                    ->setConfig(array('timeout'=>15));
+                    ->setConfig(array('timeout' => 15, 'verifypeer' => false))
+                    ->getAdapter()->setOptions(array(CURLOPT_CUSTOMREQUEST => 'PURGE'));
 
                 // send PURGE request
                 $response = $client->request('PURGE');
