@@ -25,6 +25,7 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
     const XML_PATH_VARNISH_CACHE_DISABLE_ROUTES       = 'varnishcache/general/disable_routes';
     const XML_PATH_VARNISH_CACHE_TTL                  = 'varnishcache/general/ttl';
     const XML_PATH_VARNISH_CACHE_ROUTES_TTL           = 'varnishcache/general/routes_ttl';
+    const XML_PATH_VARNISH_CACHE_ENABLE_CACHING_HTTPS = 'varnishcache/general/enable_caching_https';
 
     const REGISTRY_VAR_VARNISH_CACHE_CONTROL_HEADERS_SET_FLAG = '_varnish_cache_control_headers_set_flag';
 
@@ -80,7 +81,10 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
         }
 
         // disable caching of secure pages
-        if (Mage::app()->getStore()->isCurrentlySecure()) {
+        if (
+            Mage::app()->getStore()->isCurrentlySecure() &&
+            !Mage::getStoreConfigFlag(self::XML_PATH_VARNISH_CACHE_ENABLE_CACHING_HTTPS)
+        ) {
             return $this->setNoCacheHeader();
         }
 
@@ -193,7 +197,6 @@ class Phoenix_VarnishCache_Helper_Cache extends Mage_Core_Helper_Abstract
      */
     public function setNoCacheCookie($renewOnly = false)
     {
-
         if ($this->getCookie()->get(self::NO_CACHE_COOKIE)) {
             $this->getCookie()->renew(self::NO_CACHE_COOKIE);
         } elseif (!$renewOnly) {
