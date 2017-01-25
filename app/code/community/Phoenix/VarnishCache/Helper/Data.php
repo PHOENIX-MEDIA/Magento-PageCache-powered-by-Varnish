@@ -105,11 +105,11 @@ class Phoenix_VarnishCache_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function isEsiCapable()
     {
-        if (false === $this->isHttpsEsiDisabled()) {
+        $request = Mage::app()->getRequest();
+        if ($request->isSecure() && $this->isHttpsEsiDisabled()) {
             return false;
         }
 
-        $request = Mage::app()->getRequest();
         $isEsiCapable = $request->getHeader(self::ESI_CAPABLE_HEADER_SIGNATURE);
         if ((false === is_null($isEsiCapable)) && ($isEsiCapable == 'on')) {
             return true;
